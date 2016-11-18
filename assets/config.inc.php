@@ -24,6 +24,7 @@
 #==============================================================================
 # LDAP
 $ldap_url = "ldap://localhost";
+$ldap_starttls = false;
 $ldap_binddn = "cn=manager,dc=example,dc=com";
 $ldap_bindpw = "secret";
 $ldap_base = "dc=example,dc=com";
@@ -39,11 +40,16 @@ $ad_mode = false;
 $ad_options['force_unlock'] = false;
 # Force user change password at next login
 $ad_options['force_pwd_change'] = false;
+# Allow user with expired password to change password
+$ad_options['change_expired_password'] = false;
 
 # Samba mode
 # true: update sambaNTpassword and sambaPwdLastSet attributes too
 # false: just update the password
 $samba_mode = false;
+# Set password min/max age in Samba attributes
+#$samba_options['min_age'] = 5;
+#$samba_options['max_age'] = 45;
 
 # Shadow options - require shadowAccount objectClass
 # Update shadowLastChange
@@ -56,8 +62,12 @@ $shadow_options['update_shadowLastChange'] = false;
 # MD5
 # CRYPT
 # clear (the default)
+# auto (will check the hash of current password)
 # This option is not used with ad_mode = true
 $hash = "clear";
+
+# Prefix to use for salt with CRYPT
+$hash_options['crypt_salt_prefix'] = "$6$";
 
 # Local password policy
 # This is applied before directory password policy
@@ -79,6 +89,8 @@ $pwd_special_chars = "^a-zA-Z0-9";
 #$pwd_forbidden_chars = "@%";
 # Don't reuse the same password as currently
 $pwd_no_reuse = true;
+# Check that password is different than login
+$pwd_diff_login = true;
 # Complexity: number of different class of character required
 $pwd_complexity = 0;
 # Show policy constraints message:
@@ -96,6 +108,10 @@ $pwd_show_policy_pos = "above";
 # user: the user itself
 # manager: the above binddn
 $who_change_password = "user";
+
+## Standard change
+# Use standard change form?
+$use_change = true;
 
 ## Questions/answers
 # Use questions/answers?
@@ -127,14 +143,34 @@ $token_lifetime = "3600";
 $mail_attribute = "mail";
 # Who the email should come from
 $mail_from = "admin@example.com";
+$mail_from_name = "Self Service Password";
 # Notify users anytime their password is changed
 $notify_on_change = false;
+# PHPMailer configuration (see https://github.com/PHPMailer/PHPMailer)
+$mail_sendmailpath = '/usr/sbin/sendmail';
+$mail_protocol = 'smtp';
+$mail_smtp_debug = 0;
+$mail_debug_format = 'html';
+$mail_smtp_host = 'localhost';
+$mail_smtp_auth = false;
+$mail_smtp_user = '';
+$mail_smtp_pass = '';
+$mail_smtp_port = 25;
+$mail_smtp_timeout = 30;
+$mail_smtp_keepalive = false;
+$mail_smtp_secure = 'tls';
+$mail_contenttype = 'text/plain';
+$mail_charset = 'utf-8';
+$mail_priority = 3;
+$mail_newline = PHP_EOL;
 
 ## SMS
 # Use sms
 $use_sms = true;
 # GSM number attribute
 $sms_attribute = "mobile";
+# Partially hide number
+$sms_partially_hide_number = true;
 # Send SMS mail to address
 $smsmailto = "{sms_attribute}@service.provider.com";
 # Subject when sending email to SMTP to SMS provider
@@ -145,14 +181,26 @@ $sms_message = "{smsresetmessage} {smstoken}";
 # SMS token length
 $sms_token_length = 6;
 
+# Max attempts allowed for SMS token
+$max_attempts = 3;
+
+# Reset URL (if behind a reverse proxy)
+#$reset_url = $_SERVER['HTTP_X_FORWARDED_PROTO'] . "://" . $_SERVER['HTTP_X_FORWARDED_HOST'] . $_SERVER['SCRIPT_NAME'];
+
 # Display help messages
 $show_help = true;
 
 # Language
 $lang ="en";
 
+# Display menu on top
+$show_menu = true;
+
 # Logo
-$logo = "style/ltb-logo.png";
+$logo = "images/ltb-logo.png";
+
+# Background image
+$background_image = "images/unsplash-space.jpeg";
 
 # Debug mode
 $debug = false;
@@ -171,15 +219,14 @@ $login_forbidden_chars = "*()&|";
 
 ## CAPTCHA
 # Use Google reCAPTCHA (http://www.google.com/recaptcha)
-# Go on the site to get public and private key
 $use_recaptcha = false;
+# Go on the site to get public and private key
 $recaptcha_publickey = "";
 $recaptcha_privatekey = "";
-# Customize theme (see http://code.google.com/intl/de-DE/apis/recaptcha/docs/customization.html)
-# Examples: red, white, blackglass, clean
-$recaptcha_theme = "white";
-# Force HTTPS for recaptcha HTML code
-$recaptcha_ssl = false;
+# Customization (see https://developers.google.com/recaptcha/docs/display)
+$recaptcha_theme = "light";
+$recaptcha_type = "image";
+$recaptcha_size = "normal";
 
 ## Default action
 # change
@@ -191,5 +238,8 @@ $default_action = "change";
 # They can also be defined in lang/ files
 #$messages['passwordchangedextramessage'] = NULL;
 #$messages['changehelpextramessage'] = NULL;
+
+# Launch a posthook script after successful password change
+#$posthook = "/usr/share/self-service-password/posthook.sh";
 
 ?>
